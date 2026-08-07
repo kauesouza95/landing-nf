@@ -96,7 +96,7 @@ section{padding:74px 0;}
 .punch .lav{color:var(--lav);}
 
 /* diferenciais */
-.diffs{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1000px;margin:0 auto;}
+.diffs{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:940px;margin:0 auto;}
 .diff{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:34px 30px;}
 .diff .ic{width:52px;height:52px;border-radius:13px;background:rgba(203,202,216,.1);border:1px solid rgba(203,202,216,.22);display:flex;align-items:center;justify-content:center;margin-bottom:22px;}
 .diff .ic svg{width:26px;height:26px;stroke:var(--lav);fill:none;stroke-width:1.8;}
@@ -127,6 +127,16 @@ section{padding:74px 0;}
 .faq details[open] summary::after{content:'\2212';}
 .faq details[open] summary{border-bottom:1px solid var(--line);}
 .faq .fa{padding:18px 24px 22px;font-size:14.5px;color:var(--mut);line-height:1.65;}
+
+/* depoimentos */
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1080px;margin:0 auto;}
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 24px;display:flex;flex-direction:column;}
+.tcard .quote{font-size:15px;line-height:1.65;color:#DCDCE3;margin-bottom:20px;flex:1;}
+.tcard .who{display:flex;align-items:center;gap:12px;}
+.tcard .av{width:38px;height:38px;border-radius:50%;background:rgba(203,202,216,.14);border:1px solid rgba(203,202,216,.3);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:14px;color:var(--lav);flex-shrink:0;}
+.tcard .nm{font-family:'Space Grotesk';font-weight:600;font-size:14.5px;color:var(--ink);line-height:1.25;}
+.tcard .seg{font-size:12.5px;color:var(--mut2);}
+@media(max-width:900px){.tgrid{grid-template-columns:1fr;}}
 .gallery{margin:44px 0 6px;}
 .gallery .gallery-label{text-align:center;font-family:'Space Grotesk';font-weight:500;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut2);margin-bottom:18px;}
 .gallery-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;max-width:1080px;margin:0 auto;}
@@ -278,7 +288,7 @@ src="https://www.facebook.com/tr?id=1702440800980029&ev=PageView&noscript=1"
   <div class="sechead">
     <div class="eb">Por que a Núcleo Financeiro</div>
     <h2>Clareza de verdade, não <span class="lav">achismo</span></h2>
-    <p>Não somos "dica de finanças". Entregamos controladoria estruturada — o financeiro que as grandes empresas têm, adaptado para o seu negócio.</p>
+    <p>Não somos "dica de finanças". Entregamos controladoria estruturada — com tecnologia e IA aplicadas à rotina — o financeiro que as grandes empresas têm, adaptado para o seu negócio.</p>
   </div>
   <div class="diffs">
     <div class="diff">
@@ -296,6 +306,11 @@ src="https://www.facebook.com/tr?id=1702440800980029&ev=PageView&noscript=1"
       <h3>Linguagem que você entende</h3>
       <p>Traduzimos o financeiro complexo para a realidade do dono. Sem economês: você entende cada número e sabe exatamente o que fazer com ele.</p>
     </div>
+    <div class="diff">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg></div>
+      <h3>Rotina financeira automatizada</h3>
+      <p>Aplicamos inteligência artificial no seu financeiro: relatórios, conciliações e tarefas repetitivas deixam de consumir horas da sua equipe — e sobram dados prontos para decidir.</p>
+    </div>
   </div>
 </div></section>
 
@@ -309,8 +324,8 @@ src="https://www.facebook.com/tr?id=1702440800980029&ev=PageView&noscript=1"
   <div class="method">
     <div class="mcard"><div class="mn">FASE 01</div><h3>Diagnóstico dos 5 pilares</h3><p>Mapeamos Clareza Financeira, Performance, Maturidade de Gestão e mais — e mostramos exatamente onde o dinheiro está escapando.</p></div>
     <div class="mcard"><div class="mn">FASE 02</div><h3>Plano de prioridades</h3><p>Definimos junto com você o que ataca primeiro: preço, caixa, dívida ou margem — sem tentar resolver tudo de uma vez.</p></div>
-    <div class="mcard"><div class="mn">FASE 03</div><h3>Controladoria mensal</h3><p>DRE, fluxo de caixa projetado e análise de margem, entregues todo mês em linguagem que você entende — sem economês.</p></div>
-    <div class="mcard"><div class="mn">FASE 04</div><h3>Acompanhamento contínuo</h3><p>Revisamos o que funcionou, ajustamos o que não funcionou, e seguimos com você — controladoria não é evento único.</p></div>
+    <div class="mcard"><div class="mn">FASE 03</div><h3>Controladoria mensal</h3><p>DRE, fluxo de caixa projetado e análise de margem — com rotinas automatizadas por IA, entregues todo mês em linguagem que você entende.</p></div>
+    <div class="mcard"><div class="mn">FASE 04</div><h3>Acompanhamento contínuo</h3><p>Revisamos o que funcionou, ajustamos o que não funcionou e seguimos automatizando o que for repetitivo — controladoria não é evento único.</p></div>
   </div>
 
   <div class="gallery">
@@ -331,6 +346,7 @@ src="https://www.facebook.com/tr?id=1702440800980029&ev=PageView&noscript=1"
 </div></section>
 
 
+
 <!-- FAQ -->
 <section style="border-top:1px solid var(--line)"><div class="wrap">
   <div class="sechead">
@@ -343,6 +359,7 @@ src="https://www.facebook.com/tr?id=1702440800980029&ev=PageView&noscript=1"
     <details><summary>Meus dados ficam seguros?</summary><div class="fa">Sim. O diagnóstico pede apenas informações gerais sobre a gestão do seu negócio — nada de senha de banco, acesso a conta ou documento. Seus dados não são vendidos nem compartilhados com terceiros.</div></details>
     <details><summary>Quanto custa a consultoria depois?</summary><div class="fa">O diagnóstico é gratuito e não gera compromisso. Se fizer sentido seguir, o valor da controladoria mensal depende do porte e da complexidade do seu negócio — apresentamos a proposta só depois de entender sua situação, sem cobrança para essa conversa.</div></details>
     <details><summary>Vocês atendem minha região?</summary><div class="fa">Sim. O atendimento é 100% digital, então trabalhamos com empresas de todo o Brasil — com base no Paraná. Reuniões e entregas acontecem online, no horário que funcionar para você.</div></details>
+    <details><summary>Como vocês usam inteligência artificial?</summary><div class="fa">Usamos IA para tirar da sua rotina o trabalho manual e repetitivo do financeiro — organização de lançamentos, conciliações, geração de relatórios. A tecnologia acelera a parte operacional; a leitura dos números e as decisões continuam sendo feitas por gente, com você. Não é IA no lugar da análise, é IA para sobrar tempo para ela.</div></details>
     <details><summary>Não entendo nada de finanças. Isso é um problema?</summary><div class="fa">Pelo contrário — é exatamente para quem está nessa situação. Nosso trabalho é traduzir os números para a realidade do dono, em linguagem simples. Você não precisa aprender contabilidade; precisa entender o que fazer com o seu dinheiro.</div></details>
   </div>
 </div></section>
