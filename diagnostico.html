@@ -1,0 +1,881 @@
+<!--
+  Diagnóstico Financeiro — Núcleo Financeiro Consultoria. Arquivo único, autossuficiente.
+  ------------------------------------------------------------------
+  Esta é a versão com a identidade visual do projeto (Núcleo Financeiro / "NF"),
+  em paralelo ao berry-diagnostico.html (identidade Berry). Mesmo método, mesma
+  lógica de pontuação — só muda a pele visual e o texto de marca.
+
+  SUPABASE (opcional, mas recomendado):
+  1) Use o MESMO Supabase do berry-diagnostico.html (mesma tabela berry_leads —
+     não precisa rodar SQL novo). Os leads desta versão ficam marcados dentro do
+     campo "respostas" com respostas._origem = "nucleo-financeiro".
+  2) Preencha SUPABASE_URL e SUPABASE_ANON_KEY abaixo com a Project URL e a chave
+     anon/publishable do seu projeto (Settings > API). NUNCA use a service_role aqui.
+  Se ficarem em branco, o diagnóstico funciona normalmente e apenas não grava leads.
+
+  CONTATO (opcional): preencha CONTACT_URL abaixo com o link para onde o botão
+  final ("Falar com a Núcleo Financeiro") deve levar (site, WhatsApp, etc.).
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico Financeiro · Núcleo Financeiro Consultoria</title>
+
+<!-- Microsoft Clarity -->
+<script type="text/javascript">
+(function(c,l,a,r,i,t,y){
+  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "xyqfftf5vb");
+</script>
+<!-- End Microsoft Clarity -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root{
+  --bg:#0A0A0F; --bg2:#111116; --card:#17171D; --card2:#131318;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --sel-bg:#232330; --sel-border:#CBCAD8;
+  --ink:#F5F5F7; --muted:#A6A6B3; --muted2:#75757F;
+  --green:#CBCAD8; --green-btn:#CBCAD8; --green-btn-h:#D9D8E4;
+  --lime:#CBCAD8; --blue:#CBCAD8;
+  --orange:#E8973A; --coral:#F0625D; --exc:#34C759;
+  --radio:#5A5A66;
+  font-synthesis:none;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+body{min-height:100vh;}
+button{font-family:inherit;cursor:pointer;border:none;}
+h1,h2,h3,.pop{font-family:'Space Grotesk',sans-serif;}
+
+/* ---------- layout base ---------- */
+.wrap{max-width:940px;margin:0 auto;padding:0 22px 80px;}
+.topbar{display:flex;align-items:center;justify-content:center;position:relative;padding:26px 22px 18px;}
+.topbar .side{position:absolute;font-size:14px;color:#B7B6C6;background:none;display:flex;align-items:center;gap:6px;top:50%;transform:translateY(-50%);}
+.topbar .side.left{left:24px;} .topbar .side.right{right:24px;}
+.topbar .side:hover{color:#CBCAD8;}
+
+/* logo */
+.logo{display:flex;align-items:center;gap:11px;}
+.logo svg{width:34px;height:26px;}
+.logo span{font-family:'Space Grotesk';font-weight:600;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);}
+
+/* progress */
+.progress{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin:0 0 40px;}
+.progress > i{display:block;height:100%;background:linear-gradient(90deg,#B6B5C6,var(--lime));border-radius:3px;transition:width .4s ease;}
+
+/* ---------- intro ---------- */
+.intro{text-align:center;padding:70px 10px 40px;}
+.intro .stack{width:56px;height:56px;margin:0 auto 30px;color:#CBCAD8;}
+.intro h1{font-size:40px;font-weight:700;letter-spacing:-.02em;margin-bottom:22px;}
+.intro p{color:#B9B9C4;font-size:17px;line-height:1.6;max-width:640px;margin:0 auto 34px;}
+.cta-blue{background:var(--green-btn);color:#0A0A0F;font-family:'Space Grotesk';font-weight:600;font-size:16px;padding:15px 30px;border-radius:12px;transition:filter .15s;}
+.cta-blue:hover{filter:brightness(1.1);}
+
+/* ---------- forms / questions ---------- */
+.qhead{margin-bottom:30px;}
+.qtag{font-family:'Space Grotesk';font-weight:700;font-size:clamp(26px,4vw,32px);color:var(--green);letter-spacing:-.01em;margin-bottom:14px;}
+.qtext{font-size:clamp(18px,2.4vw,22px);line-height:1.4;color:var(--ink);font-weight:500;}
+
+.opts{display:flex;flex-direction:column;gap:16px;margin-bottom:30px;}
+.opt{display:flex;align-items:center;gap:16px;background:var(--card);border:1.5px solid transparent;border-radius:14px;padding:18px 22px;text-align:left;color:var(--ink);font-size:16px;line-height:1.35;transition:background .12s,border-color .12s;width:100%;}
+.opt:hover{background:#232330;}
+.opt .rd{width:22px;height:22px;border-radius:50%;border:2px solid var(--radio);flex-shrink:0;position:relative;transition:border-color .12s;}
+.opt.sel{background:var(--sel-bg);border-color:var(--sel-border);}
+.opt.sel .rd{border-color:var(--green);}
+.opt.sel .rd:after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--green);}
+
+.field{width:100%;background:var(--card);border:1.5px solid transparent;border-radius:12px;padding:16px 20px;color:var(--ink);font-size:16px;font-family:inherit;outline:none;transition:border-color .12s;}
+.field::placeholder{color:#7A80A6;}
+.field:focus{border-color:var(--sel-border);}
+.field.invalid{border-color:var(--coral);}
+.field-err{color:var(--coral);font-size:12.5px;line-height:1.4;margin:6px 2px 0;min-height:0;}
+select.field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239AA0B8' stroke-width='2'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 20px center;}
+.form-stack{display:flex;flex-direction:column;gap:16px;max-width:520px;margin:0 auto;}
+.form-title{text-align:center;margin-bottom:26px;}
+.form-title h1{font-family:'Space Grotesk';font-weight:700;font-size:34px;line-height:1.15;margin-bottom:12px;}
+.form-title p{color:var(--muted);font-size:15px;line-height:1.5;max-width:420px;margin:0 auto;}
+
+.btn-green{background:var(--green-btn);color:#0A0A0F;font-family:'Space Grotesk';font-weight:600;font-size:16px;padding:15px 34px;border-radius:12px;transition:filter .15s,opacity .15s;}
+.btn-green:hover{filter:brightness(1.08);}
+.btn-green:disabled{background:#2A2A33;color:#6E6E7A;cursor:not-allowed;filter:none;}
+.btn-green.center{display:block;margin:0 auto;}
+
+/* ---------- partial result ---------- */
+.pr{max-width:760px;margin:0 auto;text-align:center;padding-top:20px;}
+.pr .ico{width:56px;height:56px;margin:0 auto 4px;}
+.pr h1{font-family:'Space Grotesk';font-weight:800;font-size:clamp(34px,6vw,52px);letter-spacing:-.01em;margin-top:10px;}
+.pr .score{font-family:'Space Grotesk';font-weight:800;font-size:clamp(44px,9vw,72px);line-height:1.05;margin:2px 0;}
+.pr .lvl{font-family:'Space Grotesk';font-weight:600;font-size:20px;}
+.pr .desc{background:#17171D;border:1px solid var(--line);border-radius:16px;padding:26px;color:#DADAE0;font-size:17px;line-height:1.5;margin:28px 0 20px;}
+.pr .bar{height:16px;background:#232329;border-radius:10px;overflow:hidden;}
+.pr .bar > i{display:block;height:100%;border-radius:10px;transition:width .6s ease;}
+.pr .barcap{color:var(--muted2);font-size:14px;margin:12px 0 0;}
+.attn{background:#17171D;border:1px solid var(--line);border-radius:16px;padding:26px 28px;text-align:left;margin-top:28px;}
+.attn h3{font-family:'Space Grotesk';font-weight:700;font-size:19px;display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.attn ul{list-style:none;display:flex;flex-direction:column;gap:14px;}
+.attn li{position:relative;padding-left:20px;color:#B9B9C4;font-size:15.5px;line-height:1.45;}
+.attn li:before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:50%;background:var(--orange);}
+
+/* ---------- report ---------- */
+.report{padding-top:10px;}
+.rep-block{margin-bottom:44px;}
+.rep-h{font-family:'Space Grotesk';font-weight:800;font-size:clamp(26px,4vw,34px);text-align:center;margin-bottom:26px;}
+.globalcard{background:#1B1B22;border:1.5px solid rgba(232,151,58,.45);border-radius:14px;padding:14px 26px;text-align:center;max-width:340px;margin:0 auto 6px;}
+.pdf-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 4px 22px;border-bottom:1px solid var(--line);margin-bottom:26px;}
+.pdf-head-logo{display:flex;align-items:center;gap:10px;}
+.pdf-head-logo span{font-family:'Space Grotesk';font-weight:600;font-size:14px;letter-spacing:.04em;color:var(--ink);}
+.pdf-head-meta{text-align:right;font-size:12.5px;color:var(--muted);line-height:1.6;}
+.pdf-head-meta b{color:var(--ink);}
+.globalcard .k{color:var(--muted);font-size:14px;}
+.globalcard .v{font-family:'Space Grotesk';font-weight:700;font-size:26px;}
+
+/* radar */
+.panel{background:#17171D;border:1px solid var(--line);border-radius:18px;padding:30px 24px;}
+.panel h2{font-family:'Space Grotesk';font-weight:700;font-size:22px;text-align:center;margin-bottom:8px;}
+.radar-wrap{max-width:560px;margin:0 auto;}
+.legend{display:flex;gap:26px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+.legend span{display:flex;align-items:center;gap:7px;color:#B9B9C4;font-size:14px;}
+.legend i{width:12px;height:12px;border-radius:50%;display:inline-block;}
+
+/* SWOT */
+.swot{background:#17171D;border:1px solid var(--line);border-radius:18px;padding:30px 32px;}
+.swot > h2{font-family:'Space Grotesk';font-weight:700;font-size:22px;display:flex;align-items:center;gap:12px;margin-bottom:26px;}
+.swot-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px 40px;}
+.swot-q h4{font-family:'Space Grotesk';font-weight:700;font-size:17px;display:flex;align-items:center;gap:9px;margin-bottom:14px;}
+.swot-q ul{list-style:none;display:flex;flex-direction:column;gap:9px;}
+.swot-q li{position:relative;padding-left:16px;font-size:15px;color:#DADAE0;}
+.swot-q li:before{content:"•";position:absolute;left:0;}
+
+/* greiner */
+.greiner{background:#17171D;border:1px solid var(--line);border-radius:18px;padding:28px 30px;}
+.greiner .gh{display:flex;align-items:center;gap:11px;margin-bottom:2px;}
+.greiner .gh h2{font-family:'Space Grotesk';font-weight:700;font-size:22px;}
+.greiner .gsub{color:var(--muted2);font-size:14px;margin-bottom:26px;}
+.gchart{background:#101014;border-radius:14px;padding:24px 18px 10px;position:relative;display:flex;gap:14px;align-items:flex-end;min-height:360px;}
+.gaxis{position:absolute;left:14px;top:20px;bottom:44px;display:flex;flex-direction:column;justify-content:space-between;color:var(--muted2);font-size:12px;}
+.gaxis .lbl{writing-mode:vertical-rl;transform:rotate(180deg);position:absolute;left:-2px;top:50%;translate:0 -50%;color:var(--muted2);font-size:11px;}
+.gbars{display:flex;gap:14px;align-items:flex-end;width:100%;padding-left:44px;}
+.gbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;}
+.gbar .cap{text-align:center;margin-bottom:8px;}
+.gbar .cap .f{color:var(--muted2);font-size:12px;font-weight:600;font-family:'Space Grotesk';}
+.gbar .cap .n{color:#fff;font-size:14px;font-weight:600;font-family:'Space Grotesk';}
+.gbar .col{width:100%;background:#4E6EF2;border-radius:8px 8px 4px 4px;display:flex;align-items:center;justify-content:center;text-align:center;color:#EAF0FF;font-size:14px;font-weight:500;padding:8px;line-height:1.25;}
+.gbar.cur .col{outline:2px solid #E8C766;outline-offset:1px;}
+.here{position:absolute;top:-34px;left:50%;translate:-50% 0;background:#E8C766;color:#3a2f00;font-family:'Space Grotesk';font-weight:700;font-size:11px;padding:5px 10px;border-radius:7px;white-space:nowrap;}
+.here:after{content:"";position:absolute;bottom:-5px;left:50%;translate:-50% 0;border:5px solid transparent;border-top-color:#E8C766;border-bottom:0;}
+.gcaption{text-align:center;color:var(--muted2);font-size:13px;margin-top:10px;}
+.gnote{background:#101014;border-radius:12px;padding:20px 24px;margin-top:18px;}
+.gnote h3{font-family:'Space Grotesk';font-weight:700;font-size:18px;margin-bottom:10px;}
+.gnote p{color:#B9B9C4;font-size:15px;line-height:1.55;}
+
+/* detailed scope */
+.dscope{border-radius:18px;padding:28px 30px;margin-bottom:26px;border:1px solid var(--line);}
+.dscope .dh{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.dscope .dico{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dscope .dname{font-family:'Space Grotesk';font-weight:700;font-size:22px;flex:1;}
+.dscope .dscore{font-family:'Space Grotesk';font-weight:800;font-size:34px;}
+.dscope .badge{font-family:'Space Grotesk';font-weight:600;font-size:13px;padding:5px 14px;border-radius:20px;}
+.dscope .dbar{height:9px;background:#232329;border-radius:6px;overflow:hidden;margin-bottom:18px;}
+.dscope .dbar > i{display:block;height:100%;border-radius:6px;}
+.dscope .ddesc{color:#B9B9C4;font-size:16px;margin-bottom:20px;}
+.dscope .dpts-h{font-family:'Space Grotesk';font-weight:700;font-size:17px;display:flex;align-items:center;gap:9px;margin-bottom:16px;}
+.dpts{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.dpt{display:flex;gap:12px;align-items:flex-start;background:rgba(10,14,38,.5);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.dpt .num{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Space Grotesk';font-weight:700;font-size:13px;}
+.dpt span{font-size:14.5px;line-height:1.4;color:#C7C7D1;}
+
+/* recomendações */
+.recs{background:#17171D;border:1px solid var(--line);border-radius:18px;padding:30px 32px;}
+.recs h2{font-family:'Space Grotesk';font-weight:700;font-size:22px;color:var(--green);display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.recs .sub{color:var(--muted2);font-size:14px;margin-bottom:22px;}
+.recs-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.rec{display:flex;gap:14px;align-items:flex-start;background:rgba(10,14,38,.55);border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+.rec .num{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--green);color:#0A0A0F;font-family:'Space Grotesk';font-weight:700;font-size:14px;}
+.rec span{font-size:14.5px;line-height:1.45;color:#C7C7D1;}
+
+/* resumo */
+.resumo{background:#17171D;border:1px solid var(--line);border-radius:18px;padding:32px 34px;}
+.resumo h2{font-family:'Space Grotesk';font-weight:700;font-size:22px;display:flex;align-items:center;gap:11px;margin-bottom:20px;}
+.resumo p{color:#C7C7D1;font-size:16px;line-height:1.6;margin-bottom:16px;}
+.resumo b{color:#fff;} .resumo .hl{color:var(--orange);font-weight:700;}
+.resumo .next{background:rgba(10,14,38,.55);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:8px;}
+.resumo .next h4{font-family:'Space Grotesk';font-weight:700;font-size:16px;margin-bottom:14px;}
+.resumo .next ol{list-style:none;counter-reset:n;display:flex;flex-direction:column;gap:9px;}
+.resumo .next li{counter-increment:n;color:#B9B9C4;font-size:15px;}
+.resumo .next li:before{content:counter(n)". ";color:#fff;font-weight:700;}
+
+/* plano de ação */
+.plan{background:#17171D;border:1px solid var(--line);border-radius:18px;padding:28px 26px;overflow-x:auto;}
+.plan .ph{display:flex;align-items:center;gap:11px;}
+.plan .ph h2{font-family:'Space Grotesk';font-weight:700;font-size:22px;}
+.plan .psub{color:var(--muted2);font-size:14px;margin:2px 0 22px;}
+.ptable{min-width:840px;}
+.prow{display:grid;grid-template-columns:200px repeat(6,1fr);gap:10px;align-items:stretch;padding:14px 0;border-top:1px solid var(--line);}
+.prow.head{border-top:none;color:var(--muted);font-size:14px;font-family:'Space Grotesk';font-weight:600;padding-bottom:6px;}
+.prow.head > div{align-self:center;}
+.pact{color:#fff;} .pact .t{font-family:'Space Grotesk';font-weight:700;font-size:14.5px;line-height:1.25;}
+.pact .p{color:var(--muted2);font-size:12.5px;margin-top:4px;}
+.pcell{border-radius:9px;padding:12px 10px;font-size:13px;line-height:1.3;color:#fff;text-align:center;display:flex;align-items:center;justify-content:center;min-height:60px;}
+.pcell.empty{background:#131318;}
+.pcell.alta{background:#B8433B;} .pcell.media{background:#C87E33;} .pcell.baixa{background:#4E9E5F;}
+.plegend{margin-top:26px;}
+.plegend .lt{font-family:'Space Grotesk';font-weight:700;font-size:15px;margin-bottom:12px;}
+.plegend .bar{height:12px;border-radius:8px;background:linear-gradient(90deg,#E24B3C,#E8B84A,#59B36A);}
+.plegend .ends{display:flex;justify-content:space-between;color:#B9B9C4;font-size:13px;margin-top:7px;}
+.obs{background:#141419;border:1px solid var(--line);border-radius:14px;padding:26px 30px;margin-top:26px;}
+.obs h3{font-family:'Space Grotesk';font-weight:700;font-size:19px;margin-bottom:16px;}
+.obs ul{list-style:none;display:flex;flex-direction:column;gap:12px;}
+.obs li{position:relative;padding-left:18px;color:#B9B9C4;font-size:15px;line-height:1.5;}
+.obs li:before{content:"•";position:absolute;left:0;color:#B9B9C4;}
+.obs b{color:#fff;}
+
+/* final CTA */
+.finalcta{text-align:center;margin-top:44px;padding:40px 24px;background:linear-gradient(180deg,#101638,#131318);border:1px solid var(--line);border-radius:18px;}
+.finalcta h2{font-family:'Space Grotesk';font-weight:800;font-size:28px;margin-bottom:12px;}
+.finalcta p{color:#B9B9C4;font-size:16px;max-width:520px;margin:0 auto 24px;line-height:1.55;}
+.saved{color:var(--green);font-size:13.5px;margin-top:16px;display:none;}
+
+.nav{display:flex;justify-content:flex-start;margin-top:6px;}
+.center-block{display:flex;justify-content:center;margin-top:8px;}
+
+@media(max-width:640px){
+  .swot-grid,.dpts,.recs-grid{grid-template-columns:1fr;}
+  .intro h1{font-size:30px;}
+}
+</style>
+
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   DADOS DO DIAGNÓSTICO
+   ============================================================ */
+const BLOCKS = [
+  { id:"estagio", nome:"Estágio do Negócio", icone:"building", cor:"#4E7BF0", perguntas:[
+    { q:"Há quanto tempo você está construindo essa jornada como empresa?", opcoes:["Ainda não tenho uma empresa","Menos de 1 ano","1 a 3 anos","4 a 10 anos","11 a 20 anos","Mais de 20 anos"] },
+    { q:"Quantas pessoas, entre sócios e equipe, fazem parte da operação?", opcoes:["Até 3","4 a 9","10 a 19","20 a 49","50 a 99","100 a 199","+200"] },
+    { q:"A empresa possui estrutura de organograma com definições de cargos e funções?", opcoes:["Ainda não temos cargos ou funções formalmente definidos","Algumas funções foram divididas, mas não estão claras para todos","Já existe um organograma informal com papéis básicos mapeados","Temos cargos e funções bem definidos e comunicados à equipe","O organograma é estruturado, documentado e revisado com frequência"] }
+  ]},
+  { id:"maturidade", nome:"Maturidade em Gestão", icone:"gear", cor:"#9B5CF0", perguntas:[
+    { q:"As finanças da empresa e dos sócios estão 100% separadas?", opcoes:["As movimentações pessoais e da empresa estão misturadas","Existe alguma separação, mas ainda ocorrem misturas frequentes","As finanças estão parcialmente separadas com algum controle","As contas estão bem separadas, com raras exceções pontuais","As finanças são totalmente separadas e gerenciadas de forma independente"] },
+    { q:"Existe alguém responsável diretamente pela área financeira?", opcoes:["Não há ninguém responsável pela área financeira","Um dos sócios cuida das finanças junto com outras funções","Temos alguém alocado, mas sem processo definido","Há um responsável com rotina estabelecida e controles básicos","Temos um profissional dedicado com processo, metas e indicadores"] },
+    { q:"As pessoas sabem o que devem fazer e existe um mínimo de rotina documentada para garantir a execução?", opcoes:["A equipe trabalha sem clareza sobre suas responsabilidades","Há entendimento geral, mas sem rotina definida","Algumas rotinas são documentadas, mas não são seguidas com consistência","A maioria das funções tem rotina e checklists definidos e aplicados","Todas as funções têm processos claros, rotinas mapeadas e executadas"] },
+    { q:"Os dados financeiros são validados com frequência para garantir que o que está no sistema bate com a conta bancária?", opcoes:["Não realizamos nenhum tipo de conferência bancária ou validação","As conferências são feitas esporadicamente, apenas em casos críticos","Validações são feitas de forma parcial ou irregular","Temos uma rotina mensal de conciliação bancária","A conciliação bancária é feita de forma sistemática, com registro e controle"] },
+    { q:"Como você registra e controla os dados financeiros hoje?", opcoes:["Totalmente manual (papel/planilhas básicas)","Planilhas avançadas com alguns controles","Sistema básico de gestão","Sistema integrado de gestão (ERP)","Sistema completo com dashboards e BI"] }
+  ]},
+  { id:"clareza", nome:"Clareza nos Indicadores", icone:"pie", cor:"#31B4C9", perguntas:[
+    { q:"Você saberia dizer exatamente quanto precisa faturar para cobrir todos os custos e começar a lucrar?", opcoes:["Não fazemos esse tipo de cálculo ou projeção","Temos uma estimativa vaga, mas não sabemos ao certo","Já calculamos, mas não usamos isso na prática","Sabemos nosso ponto de equilíbrio e acompanhamos com frequência","Utilizamos o ponto de equilíbrio como referência estratégica nas decisões"] },
+    { q:"Você olha para o lucro real da operação todos os meses com base em um DRE gerencial atualizado?", opcoes:["Não utilizamos DRE nem temos visibilidade sobre o lucro real","Temos um DRE, mas sem frequência ou formato adequado para gestão","Usamos DRE pontualmente, mas com dificuldade de análise","Acompanhamos mensalmente o DRE para entender o resultado","O DRE é analisado, comparado com metas e orienta decisões gerenciais"] },
+    { q:"A empresa já sabe o que deve entrar e sair nos próximos 30 a 90 dias?", opcoes:["Não fazemos nenhum tipo de projeção de caixa","Projeções são feitas de forma esporádica e sem base sólida","Usamos estimativas simples, mas sem rotina definida","Projetamos o fluxo mensalmente com dados reais e estimativas seguras","Temos fluxo de caixa estruturado, com visão clara de curto e médio prazo"] },
+    { q:"Você tem clareza sobre o que possui e deve, com um balanço atualizado como ferramenta de gestão?", opcoes:["Não temos balanço patrimonial estruturado ou atualizado","Temos um balanço contábil, mas não usamos para tomada de decisão","Atualizamos o balanço eventualmente, sem análise frequente","Acompanhamos o balanço e usamos para avaliar saúde financeira","Utilizamos o balanço como ferramenta estratégica na gestão patrimonial"] },
+    { q:"Você utiliza a margem de contribuição para saber quais produtos ou serviços geram lucro real?", opcoes:["Nunca calculamos margem de contribuição dos produtos ou serviços","Temos ideia da margem, mas sem precisão ou análise contínua","Já fizemos esse cálculo, mas usamos pouco no dia a dia","Monitoramos a margem com regularidade para os principais produtos","A margem de contribuição é analisada e orienta precificação e foco comercial"] },
+    { q:"Há uma meta mínima de caixa ou capital de giro definida para evitar surpresas no financeiro?", opcoes:["Não temos nenhuma reserva ou controle de caixa mínimo","Guardamos algum valor, mas sem meta ou planejamento","Existe uma reserva, mas ainda sem critério técnico","Temos meta de caixa e acompanhamos sua manutenção","Trabalhamos com controle rigoroso de capital de giro e caixa mínimo estratégico"] },
+    { q:"As principais métricas financeiras estão visíveis e acessíveis em algum dashboard para facilitar a tomada de decisão?", opcoes:["Não temos métricas organizadas nem visíveis para análise","Acompanhamos algumas métricas, mas de forma manual e desatualizada","Usamos planilhas ou relatórios simples para acompanhar resultados","Temos dashboards com indicadores atualizados regularmente","Trabalhamos com dashboards integrados, acionáveis e alinhados à estratégia"] }
+  ]},
+  { id:"estrategico", nome:"Nível Estratégico", icone:"target", cor:"#6E63F0", perguntas:[
+    { q:"Você tem um plano financeiro para o ano, com metas e projeções para acompanhar a evolução do negócio?", opcoes:["Não temos um plano financeiro anual estruturado","Trabalhamos com metas soltas e sem conexão com as finanças","Criamos um planejamento básico, mas sem revisões constantes","Usamos um plano financeiro anual com metas e revisões periódicas","Nosso plano financeiro é detalhado, seguido por todos e ajustado conforme a realidade"] },
+    { q:"Cada área ou setor tem uma meta e um orçamento definido para guiar as decisões?", opcoes:["Não temos metas nem orçamento por área definidos","Algumas áreas têm metas informais, sem acompanhamento claro","As metas existem, mas o orçamento ainda é centralizado","A maior parte das áreas trabalha com metas e orçamento definidos","Todas as áreas têm metas claras e orçamento estruturado, usados na gestão"] },
+    { q:"Você já considerou usar crédito de forma estratégica para acelerar o crescimento do negócio?", opcoes:["Nunca utilizamos crédito e evitamos essa opção","Já contratamos crédito, mas de forma reativa e desorganizada","Consideramos crédito para o negócio, mas sem plano estruturado","Utilizamos crédito de forma pontual com acompanhamento básico","Usamos crédito de forma planejada, com retorno e impacto bem calculado"] },
+    { q:"Você toma decisões considerando uma modelagem financeira, com projeções e diferentes cenários?", opcoes:["Nunca fizemos esse tipo de projeção para tomada de decisão","Já tentamos simular cenários, mas sem profundidade técnica","Utilizamos projeções em momentos pontuais ou críticos","Analisamos cenários regularmente para decisões mais relevantes","Toda decisão estratégica é baseada em modelagem com múltiplos cenários"] },
+    { q:"Você sabe quanto a empresa vale hoje e quanto deseja que ela tenha de valor em 2 ou 3 anos?", opcoes:["Nunca pensamos sobre o valor da empresa (valuation)","Temos uma ideia vaga, mas sem cálculos ou metas definidas","Já estimamos o valuation, mas não temos plano de evolução","Sabemos nosso valuation e acompanhamos sua variação","Trabalhamos com metas de valuation e plano estruturado para alcançá-las"] }
+  ]},
+  { id:"performance", nome:"Performance Financeira", icone:"bolt", cor:"#E8973A", perguntas:[
+    { q:"Ao final do mês, sobra dinheiro com consistência?", opcoes:["Não sobra nada, frequentemente operamos no limite ou no vermelho","Às vezes sobra, mas de forma totalmente instável","Temos meses positivos, mas sem previsibilidade","O caixa costuma fechar com sobra na maioria dos meses","Sempre sobra dinheiro, com constância e margem de segurança"] },
+    { q:"O lucro que aparece no papel realmente vira dinheiro na conta?", opcoes:["O lucro contábil raramente se reflete no caixa real","Às vezes há lucro, mas o caixa não acompanha","Estamos ajustando processos para alinhar lucro e caixa","O lucro geralmente se transforma em caixa com certa consistência","O lucro projetado bate com o caixa final, garantindo previsibilidade"] },
+    { q:"Você recebe dos clientes em prazos que favorecem o caixa?", opcoes:["Os prazos de recebimento são longos e atrapalham o financeiro","Os clientes pagam de forma irregular e fora do combinado","Estamos melhorando a política de recebimento, mas ainda sem padrão","Recebemos dentro de prazos razoáveis, alinhados ao fluxo de caixa","Nossos prazos são bem definidos e pensados para maximizar o caixa"] },
+    { q:"A inadimplência dos clientes está sob controle?", opcoes:["Temos alta inadimplência e pouco controle sobre ela","Monitoramos informalmente e tentamos cobrar quando possível","Já implementamos ações de controle, mas sem regularidade","A inadimplência é acompanhada com processos e indicadores","Temos baixíssima inadimplência com políticas e prevenção ativas"] },
+    { q:"Se houvesse uma queda nas vendas hoje, a empresa conseguiria continuar operando por alguns meses?", opcoes:["Uma queda brusca comprometeria a operação imediatamente","Conseguiríamos sobreviver por um curto período com dificuldades","Teríamos como ajustar as operações temporariamente","Temos estrutura e caixa para sustentar a operação por alguns meses","Estamos preparados financeiramente para manter a operação mesmo com quedas prolongadas"] },
+    { q:"As dívidas da empresa são proporcionais ao que ela fatura e à capacidade de pagamento?", opcoes:["As dívidas estão descontroladas e comprometem o caixa","Já tivemos problemas com dívidas e ainda estamos ajustando","O endividamento é razoável, mas exige atenção constante","As dívidas estão sob controle e dentro da capacidade da empresa","A empresa opera com dívidas estratégicas e altamente saudáveis"] },
+    { q:"Os sócios estão satisfeitos com os valores de pró-labore e distribuição de lucros?", opcoes:["Não há definição nem previsibilidade nos ganhos dos sócios","Os valores pagos são baixos ou inconsistentes com a realidade do negócio","Há alguma distribuição, mas sem clareza ou constância","Os sócios recebem valores razoáveis e com frequência definida","Os sócios são bem remunerados, com distribuição clara e satisfatória"] }
+  ]}
+];
+const PERFIL = {
+  objetivo:{ q:"Qual seu principal desafio nos próximos 12 meses?", opcoes:["Quero organizar meu financeiro","Quero ter processos mais eficientes","Quero aumentar o lucro","Quero reduzir despesas","Quero administrar bem o endividamento"] },
+  tempo:{ q:"Há quanto tempo você está construindo essa jornada como empresa?", opcoes:["Ainda não tenho uma empresa","Menos de 1 ano","1 a 3 anos","4 a 10 anos","11 a 20 anos","Mais de 20 anos"] },
+  faturamento:{ q:"Hoje, qual faixa de faturamento mensal melhor representa a sua realidade?", opcoes:["Até R$ 30 mil","R$ 31 mil a R$ 50 mil","R$ 51 mil a R$ 300 mil","R$ 301 mil a R$ 1 milhão","Mais de R$ 1 milhão","Mais de R$ 5 milhões"] },
+  setores:["Automotivo","Comércio / Varejo","Serviços","Indústria","Saúde","Educação","Tecnologia","Construção Civil","Alimentação","Agronegócio","Transporte / Logística","Beleza / Estética","Outro"]
+};
+const REC = ["Implementar separação imediata das finanças pessoais e empresariais com abertura de contas exclusivas da empresa.","Migrar urgentemente do controle manual para sistema básico de gestão financeira com controles automatizados.","Implementar software de gestão financeira integrado para automatizar processos e melhorar controles.","Estabelecer reuniões mensais de análise financeira com foco em indicadores de performance.","Desenvolver dashboard financeiro com indicadores-chave atualizados em tempo real.","Implementar controles de orçamento por centro de custo e acompanhamento de desvios.","Estabelecer política de reserva de emergência equivalente a 3-6 meses de despesas fixas.","Implementar sistema de aprovação hierárquica para despesas acima de valores pré-definidos.","Criar relatórios executivos mensais com análise de tendências e projeções.","Desenvolver indicadores de produtividade e eficiência para otimização de recursos."];
+const PTS_REGULAR = ["Automatizar processos manuais para ganhar eficiência e reduzir erros","Estabelecer benchmarks do setor para comparação de performance","Implementar relatórios gerenciais mensais para acompanhamento","Capacitar equipe em ferramentas mais avançadas de gestão","Criar indicadores específicos para monitoramento contínuo","Revisar e otimizar processos existentes trimestralmente"];
+const PTS_CRITICO = ["Priorizar migração do controle manual para sistema digital reduzirá erros e aumentará eficiência","Buscar consultoria especializada para implementação rápida de melhorias","Estabelecer rotina semanal de acompanhamento dos principais indicadores","Capacitar equipe interna nos conceitos básicos da área","Documentar todos os processos críticos para evitar dependência pessoal","Implementar controles mínimos para reduzir riscos operacionais"];
+const GREINER = [
+  {fase:"FASE 1",nome:"Criatividade",crise:"Crises de Liderança",h:34},
+  {fase:"FASE 2",nome:"Direção",crise:"Crises de Autonomia",h:44},
+  {fase:"FASE 3",nome:"Delegação",crise:"Crises de Controle",h:56},
+  {fase:"FASE 4",nome:"Coordenação",crise:"Crises de Processos",h:68},
+  {fase:"FASE 5",nome:"Colaboração",crise:"Crises de Crescimento",h:80},
+  {fase:"FASE 6",nome:"Alianças",crise:"Crises de Identidade",h:92}
+];
+const DESC = {
+  estagio:{critico:"Empresa em estágio inicial, com estrutura e processos ainda por definir.",regular:"Empresa em crescimento com estrutura em desenvolvimento e bom potencial.",excelente:"Empresa madura, com estrutura organizacional sólida e bem definida."},
+  maturidade:{critico:"Nível crítico de organização, processos e gestão do setor financeiro.",regular:"Gestão em desenvolvimento, com controles básicos implementados.",excelente:"Gestão madura, com processos e controles bem estabelecidos."},
+  clareza:{critico:"Baixa visibilidade sobre os indicadores financeiros do negócio.",regular:"Controle financeiro básico com alguns indicadores implementados.",excelente:"Indicadores financeiros claros e usados na tomada de decisão."},
+  estrategico:{critico:"Planejamento estratégico ainda incipiente ou inexistente.",regular:"Planejamento estratégico em desenvolvimento com algumas práticas implementadas.",excelente:"Estratégia bem estruturada, orientando as decisões do negócio."},
+  performance:{critico:"Performance financeira frágil, com riscos relevantes ao caixa.",regular:"Performance financeira estável com alguns pontos de atenção.",excelente:"Performance financeira sólida, com previsibilidade e margem."}
+};
+const PLAN_ROWS = [
+  { nome:"Estruturação Empresarial", blk:"estagio", cells:[1,"Definir estrutura organizacional e hierarquia",2,"Formalizar processos básicos da empresa",3,"Implementar governança corporativa básica"] },
+  { nome:"Maturidade de Gestão", blk:"maturidade", cells:[1,"Mapear processos de gestão atuais",2,"Definir metodologias de gestão",3,"Treinar líderes em gestão",4,"Implementar ferramentas de controle"] },
+  { nome:"Clareza de Indicadores", blk:"clareza", cells:[1,"Definir KPIs essenciais para o negócio",2,"Implementar sistema de coleta de dados",3,"Criar dashboards de acompanhamento"] },
+  { nome:"Nível Estratégico", blk:"estrategico", cells:[1,"Desenvolver planejamento estratégico",2,"Definir missão, visão e valores",3,"Estabelecer objetivos e metas",4,"Criar plano de ação estratégico"] },
+  { nome:"Otimizar Finanças", blk:"performance", cells:[2,"Implementar análises financeiras",4,"Otimizar gestão de recursos",6,"Criar relatórios gerenciais"] },
+  { nome:"Monitoramento e Acompanhamento Geral", blk:null, prio:"baixa", cells:[5,"Avaliar progresso das ações implementadas",6,"Realizar novo diagnóstico e ajustar plano"] }
+];
+
+/* ============================================================
+   SUPABASE (preencha para gravar leads — deixe vazio para desativar)
+   ============================================================ */
+const SUPABASE_URL = "https://weivozmdlzhiwvuurfkr.supabase.co";       // ex.: https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlaXZvem1kbHpoaXd2dXVyZmtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0Mjk5MTcsImV4cCI6MjA5OTAwNTkxN30.Vd8KHpx0l8wCWgEl4-cOdPzofKwjpFOPNl2Dkr07CEg";  // chave anon/publishable (NUNCA a service_role)
+const CONTACT_URL = "https://wa.me/5541995440631?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20N%C3%BAcleo%20Financeiro%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es.";        // link do botão final (site, WhatsApp, etc.) — ex.: "https://wa.me/55..."
+
+/* avisa a landing que o diagnóstico foi aberto (para métricas) */
+try{
+  if(window.parent && window.parent !== window){
+    window.parent.postMessage({nf:"diagnostico_iniciado"}, "*");
+  }
+}catch(e){}
+
+async function salvarLead(payload){
+  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return {ok:false, skipped:true};
+  try{
+    const r = await fetch(SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/berry_leads",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+SUPABASE_ANON_KEY,"Prefer":"return=minimal" },
+      body: JSON.stringify(payload)
+    });
+    return {ok:r.ok, status:r.status};
+  }catch(e){ return {ok:false, error:String(e)}; }
+}
+
+/* ============================================================
+   HELPERS DE SCORE
+   ============================================================ */
+function optScore(idx,n){ return Math.round(idx/(n-1)*100); }
+function blockScore(bi){
+  const b=BLOCKS[bi], ans=STATE.respostas[b.id]||[];
+  let sum=0,c=0;
+  b.perguntas.forEach((p,qi)=>{ if(ans[qi]!=null){ sum+=optScore(ans[qi],p.opcoes.length); c++; } });
+  return c?Math.round(sum/c):0;
+}
+function nivel(s){ return s<40?"critico":(s<70?"regular":"excelente"); }
+function nivelLabel(n){ return n==="critico"?"Crítico":n==="regular"?"Regular":"Excelente"; }
+function nivelCor(n){ return n==="critico"?"var(--coral)":n==="regular"?"var(--orange)":"var(--exc)"; }
+function nivelHex(n){ return n==="critico"?"#F0625D":n==="regular"?"#E8973A":"#34C759"; }
+function globalScore(){ return Math.round(BLOCKS.reduce((a,_,i)=>a+blockScore(i),0)/BLOCKS.length); }
+
+/* ============================================================
+   ÍCONES
+   ============================================================ */
+const ICON = {
+  building:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M4 22V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v18"/><path d="M15 9h4a1 1 0 0 1 1 1v12"/><path d="M8 7h2M8 11h2M8 15h2"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.9 1.1V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 7.6 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9.4a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h0A1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 2.4 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9c.36.14.68.35.94.61"/></svg>',
+  pie:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>',
+  target:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="#fff"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24" fill="#fff" width="22" height="22"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>'
+};
+const NF_ICON_B64="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";
+function logoSVG(){
+  return `<img src="data:image/png;base64,${NF_ICON_B64}" alt="NF" style="width:28px;height:auto;display:block">`;
+}
+
+/* ============================================================
+   ESTADO E NAVEGAÇÃO
+   ============================================================ */
+const STATE = { dados:{}, perfil:{}, respostas:{}, leadSaved:false };
+BLOCKS.forEach(b=> STATE.respostas[b.id]=[]);
+
+const STEPS = [{type:"intro"},{type:"dados"},{type:"perfil",key:"objetivo"},{type:"perfil",key:"tempo"},{type:"perfil",key:"setor"},{type:"perfil",key:"faturamento"}];
+BLOCKS.forEach((b,bi)=>{ b.perguntas.forEach((p,qi)=> STEPS.push({type:"q",bi,qi})); STEPS.push({type:"partial",bi}); });
+STEPS.push({type:"report"});
+
+let cur=0;
+const totalQ = STEPS.filter(s=>s.type==="q"||s.type==="perfil").length;
+function qProgress(){ let n=0; for(let i=0;i<=cur;i++){ if(STEPS[i]&&(STEPS[i].type==="q"||STEPS[i].type==="perfil")) n++; } return Math.round(n/totalQ*100); }
+function go(n){ cur=n; if(cur<0)cur=0; render(); window.scrollTo(0,0); }
+function next(){ go(cur+1); }
+function back(){ go(cur-1); }
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const app=document.getElementById("app");
+function shell(inner, showProgress){
+  return `<div class="topbar">
+      ${cur>0?'<button class="side left" onclick="back()">← Voltar</button>':''}
+      <div class="logo">${logoSVG()}<span>Núcleo Financeiro</span></div>
+      ${cur>0?'<button class="side right" onclick="restart()">↻ Começar novamente</button>':''}
+    </div>
+    <div class="wrap">
+      ${showProgress?`<div class="progress"><i style="width:${qProgress()}%"></i></div>`:''}
+      ${inner}
+    </div>`;
+}
+function restart(){ if(confirm("Começar o diagnóstico novamente?")){ STATE.dados={};STATE.perfil={};BLOCKS.forEach(b=>STATE.respostas[b.id]=[]);STATE.leadSaved=false;go(0);} }
+
+function marcarEtapa(s){
+  try{
+    var nome;
+    if(s.type==="intro")        nome="Diag_Intro";
+    else if(s.type==="dados")   nome="Diag_Dados";
+    else if(s.type==="perfil")  nome="Diag_Perfil";
+    else if(s.type==="q")       nome="Diag_Pergunta_"+(cur);
+    else if(s.type==="partial") nome="Diag_Parcial_"+(s.bi+1);
+    else if(s.type==="report")  nome="Diag_Resultado";
+    if(!nome) return;
+    if(window.clarity) clarity("event", nome);
+    /* avisa a landing (quando em iframe) para registrar o progresso */
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({nf:"diagnostico_etapa", etapa:nome}, "*");
+    }
+  }catch(e){}
+}
+
+function render(){
+  const s=STEPS[cur];
+  marcarEtapa(s);
+  if(s.type==="intro")    app.innerHTML=viewIntro();
+  else if(s.type==="dados")   app.innerHTML=shell(viewDados(),false);
+  else if(s.type==="perfil")  app.innerHTML=shell(viewPerfil(s.key),true);
+  else if(s.type==="q")       app.innerHTML=shell(viewQuestion(s.bi,s.qi),true);
+  else if(s.type==="partial") app.innerHTML=shell(viewPartial(s.bi),false);
+  else if(s.type==="report"){ app.innerHTML=shell(viewReport(),false); drawRadar(); doSaveLead(); }
+}
+
+/* ---- intro ---- */
+function viewIntro(){
+  return `<div class="topbar"><div class="logo">${logoSVG()}<span>Núcleo Financeiro</span></div></div>
+  <div class="wrap"><div class="intro">
+    <div class="stack"><svg viewBox="0 0 24 24" fill="none" stroke="#CBCAD8" stroke-width="2" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg></div>
+    <h1>Como funciona o método?</h1>
+    <p>O método Núcleo Financeiro integra três dimensões cuja análise é essencial para o sucesso de uma empresa: Fase de Vida, Gestão &amp; Governança e Valor &amp; Performance.</p>
+    <button class="cta-blue" onclick="next()">Entendi. Quero começar!</button>
+  </div></div>`;
+}
+
+/* ---- dados ---- */
+function viewDados(){
+  const d=STATE.dados;
+  const cargos=["Dono / Sócio","Diretor(a)","Gerente","Controller / Financeiro","Contador(a)","Outro"];
+  return `<div class="form-title">
+      <h1>Vamos começar!<br>Preencha seus dados</h1>
+      <p>Para iniciar o diagnóstico, precisamos de algumas informações básicas sobre você e sua empresa.</p>
+    </div>
+    <div class="form-stack">
+      <input class="field" id="f_nome" placeholder="Seu nome completo" value="${esc(d.nome||'')}" oninput="onDados()" onblur="touchField('f_nome')">
+      <div>
+        <input class="field" id="f_email" type="email" inputmode="email" placeholder="Seu melhor e-mail" value="${esc(d.email||'')}" oninput="onDados()" onblur="touchField('f_email')">
+        <div class="field-err" id="err_f_email"></div>
+      </div>
+      <div>
+        <input class="field" id="f_tel" inputmode="tel" placeholder="WhatsApp (DDD + número)" value="${esc(d.telefone||'')}" oninput="onTelInput()" onblur="touchField('f_tel')">
+        <div class="field-err" id="err_f_tel"></div>
+      </div>
+      <input class="field" id="f_emp" placeholder="Nome da empresa" value="${esc(d.empresa||'')}" oninput="onDados()" onblur="touchField('f_emp')">
+      <select class="field" id="f_cargo" onchange="onDados()">
+        <option value="">Seu cargo…</option>
+        ${cargos.map(c=>`<option ${d.cargo===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <button class="btn-green center" id="dados_btn" onclick="submitDados()" disabled>Continuar</button>
+    </div>`;
+}
+const TOUCHED={};
+function touchField(id){ TOUCHED[id]=true; onDados(); }
+function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+function phoneDigits(v){ return (v||"").replace(/\D/g,""); }
+function isValidPhone(v){ const d=phoneDigits(v); return d.length===10||d.length===11; }
+function maskPhone(v){
+  let d=phoneDigits(v).slice(0,11);
+  if(d.length<=2) return d.length?`(${d}`:"";
+  if(d.length<=6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+  if(d.length<=10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+}
+function onTelInput(){
+  const el=document.getElementById("f_tel");
+  const pos=el.selectionStart, before=el.value.length;
+  el.value=maskPhone(el.value);
+  const diff=el.value.length-before;
+  try{ el.setSelectionRange(pos+diff,pos+diff); }catch(e){}
+  onDados();
+}
+function onDados(){
+  const v=id=>document.getElementById(id).value.trim();
+  const okNome=!!v("f_nome"), okEmp=!!v("f_emp"), okCargo=!!v("f_cargo");
+  const okEmail=isValidEmail(v("f_email")), okTel=isValidPhone(v("f_tel"));
+
+  const errEmail=document.getElementById("err_f_email");
+  if(errEmail) errEmail.textContent = (TOUCHED.f_email && v("f_email") && !okEmail) ? "Digite um e-mail válido, ex.: nome@empresa.com" : "";
+  const errTel=document.getElementById("err_f_tel");
+  if(errTel) errTel.textContent = (TOUCHED.f_tel && v("f_tel") && !okTel) ? "Digite um WhatsApp válido com DDD, ex.: (41) 99999-0000" : "";
+
+  document.getElementById("f_email").classList.toggle("invalid", !!(TOUCHED.f_email && v("f_email") && !okEmail));
+  document.getElementById("f_tel").classList.toggle("invalid", !!(TOUCHED.f_tel && v("f_tel") && !okTel));
+
+  const ok = okNome && okEmail && okTel && okEmp && okCargo;
+  document.getElementById("dados_btn").disabled=!ok;
+}
+function submitDados(){
+  STATE.dados={ nome:val("f_nome"), email:val("f_email"), telefone:val("f_tel"), empresa:val("f_emp"), cargo:val("f_cargo") };
+  next();
+}
+function val(id){ return document.getElementById(id).value.trim(); }
+
+/* ---- perfil ---- */
+function viewPerfil(key){
+  if(key==="setor"){
+    const sel=STATE.perfil.setor||"";
+    return `<div class="qhead"><div class="qtag">Estágio do Negócio</div><div class="qtext">Em qual setor a sua empresa atua hoje?</div></div>
+      <div style="max-width:640px">
+        <select class="field" id="perfil_setor" onchange="STATE.perfil.setor=this.value;document.getElementById('perfil_btn').disabled=!this.value">
+          <option value="">Selecione…</option>
+          ${PERFIL.setores.map(s=>`<option ${sel===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <div style="margin-top:24px"><button class="btn-green" id="perfil_btn" onclick="next()" ${sel?'':'disabled'}>Próximo</button></div>
+      </div>`;
+  }
+  const P=PERFIL[key], sel=STATE.perfil[key];
+  const tag = key==="objetivo" ? "Principal objetivo do negócio" : "Estágio do Negócio";
+  return `<div class="qhead"><div class="qtag">${tag}</div><div class="qtext">${P.q}</div></div>
+    <div class="opts">
+      ${P.opcoes.map((o,i)=>`<button class="opt ${sel===i?'sel':''}" onclick="pickPerfil('${key}',${i})"><span class="rd"></span>${o}</button>`).join('')}
+    </div>
+    <div class="nav"><button class="btn-green" id="perfil_btn" onclick="next()" ${sel!=null?'':'disabled'}>Próximo</button></div>`;
+}
+function pickPerfil(key,i){ STATE.perfil[key]=i; document.querySelectorAll('.opts .opt').forEach((el,idx)=>el.classList.toggle('sel',idx===i)); document.getElementById('perfil_btn').disabled=false; }
+
+/* ---- question ---- */
+function viewQuestion(bi,qi){
+  const b=BLOCKS[bi], p=b.perguntas[qi], sel=STATE.respostas[b.id][qi];
+  return `<div class="qhead"><div class="qtag">${b.nome}</div><div class="qtext">${p.q}</div></div>
+    <div class="opts">
+      ${p.opcoes.map((o,i)=>`<button class="opt ${sel===i?'sel':''}" onclick="pickQ(${bi},${qi},${i})"><span class="rd"></span>${o}</button>`).join('')}
+    </div>
+    <div class="nav"><button class="btn-green" id="q_btn" onclick="next()" ${sel!=null?'':'disabled'}>Próximo</button></div>`;
+}
+function pickQ(bi,qi,i){ STATE.respostas[BLOCKS[bi].id][qi]=i; document.querySelectorAll('.opts .opt').forEach((el,idx)=>el.classList.toggle('sel',idx===i)); document.getElementById('q_btn').disabled=false; }
+
+/* ---- partial ---- */
+function viewPartial(bi){
+  const b=BLOCKS[bi], s=blockScore(bi), n=nivel(s), cor=nivelHex(n);
+  const pts = n==="critico"?PTS_CRITICO:PTS_REGULAR;
+  const isLast = bi===BLOCKS.length-1;
+  return `<div class="pr">
+    <div class="ico">${iconCircle(b,cor,56)}</div>
+    <h1>${b.nome}</h1>
+    <div class="score" style="color:${cor}">${s}/100</div>
+    <div class="lvl" style="color:${cor}">${nivelLabel(n)}</div>
+    <div class="desc">${DESC[b.id][n]}</div>
+    <div class="bar"><i style="width:${s}%;background:${cor}"></i></div>
+    <div class="barcap">Resultado parcial para ${b.nome}</div>
+    <div class="attn">
+      <h3>${warnIcon(cor)} Pontos de Atenção</h3>
+      <ul>${pts.map(t=>`<li>${t}</li>`).join('')}</ul>
+    </div>
+    <div class="center-block"><button class="btn-green" style="margin-top:30px" onclick="next()">${isLast?'Ver relatório completo':'Continuar'}</button></div>
+  </div>`;
+}
+function iconCircle(b,cor,size){ return `<div style="width:${size}px;height:${size}px;border-radius:14px;background:${cor}22;display:flex;align-items:center;justify-content:center;color:${cor}"><div style="color:${cor}">${ICON[b.icone].replace(/#fff/g,cor)}</div></div>`; }
+function warnIcon(cor){ return `<svg viewBox="0 0 24 24" fill="none" stroke="${cor}" stroke-width="2" width="20" height="20"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>`; }
+
+/* ============================================================
+   RELATÓRIO FINAL
+   ============================================================ */
+function greinerPhase(){
+  const s=blockScore(0);
+  if(s<20)return 0; if(s<45)return 1; if(s<60)return 2; if(s<75)return 3; if(s<90)return 4; return 5;
+}
+function viewReport(){
+  const gs=globalScore(), gn=nivel(gs), gcor=nivelHex(gn);
+  const scores=BLOCKS.map((_,i)=>blockScore(i));
+
+  // score global + card
+  const hoje = new Date().toLocaleDateString("pt-BR");
+  let html=`<div class="report">
+    <div id="pdf-area">
+    <div class="pdf-head">
+      <div class="pdf-head-logo">${logoSVG()}<span>Núcleo Financeiro Consultoria</span></div>
+      <div class="pdf-head-meta">
+        <div><b>${esc(STATE.dados.nome||'—')}</b>${STATE.dados.empresa?' · '+esc(STATE.dados.empresa):''}</div>
+        <div>Diagnóstico Financeiro · ${hoje}</div>
+      </div>
+    </div>
+    <div class="globalcard"><div class="k">Esse Score é considerado:</div><div class="v" style="color:${gcor}">${nivelLabel(gn)}</div></div>`;
+
+  // radar
+  html+=`<div class="rep-block" style="margin-top:24px"><div class="panel"><h2>Análise por Escopo</h2>
+     <div class="radar-wrap"><div id="radar"></div></div>
+     <div class="legend">
+       <span><i style="background:#F0625D"></i>Crítico</span>
+       <span><i style="background:#E8973A"></i>Regular</span>
+       <span><i style="background:#34C759"></i>Excelente</span>
+     </div></div></div>`;
+
+  // SWOT
+  const fraquezas=BLOCKS.filter((_,i)=>nivel(scores[i])!=="excelente").map(b=>b.nome);
+  html+=`<div class="rep-block"><div class="swot">
+    <h2>${targetIcon("#fff")} Análise SWOT</h2>
+    <div class="swot-grid">
+      <div class="swot-q"><h4 style="color:#CBCAD8">↗ Forças</h4><ul><li>Empresa em operação</li><li>Potencial de crescimento</li></ul></div>
+      <div class="swot-q"><h4 style="color:#F0625D">↘ Fraquezas</h4><ul>${fraquezas.map(f=>`<li>${f}</li>`).join('')||'<li>—</li>'}</ul></div>
+      <div class="swot-q"><h4 style="color:#5A83F0">◎ Oportunidades</h4><ul><li>Melhoria de processos</li><li>Implementação de controles</li><li>Capacitação da equipe</li></ul></div>
+      <div class="swot-q"><h4 style="color:#E8973A">⚠ Ameaças</h4><ul><li>Instabilidade financeira</li><li>Falta de controle</li><li>Riscos operacionais</li></ul></div>
+    </div></div></div>`;
+
+  // greiner
+  const gp=greinerPhase();
+  html+=`<div class="rep-block"><div class="greiner">
+    <div class="gh"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg><h2>Estágio do Negócio</h2></div>
+    <div class="gsub">Baseado na Curva de Greiner</div>
+    <div class="gchart">
+      <div class="gaxis"><span>Alto</span><span>Médio</span><span>Baixo</span></div>
+      <div class="gbars">
+        ${GREINER.map((g,i)=>`<div class="gbar ${i===gp?'cur':''}">
+          ${i===gp?'<div class="here">VOCÊ ESTÁ AQUI</div>':''}
+          <div class="cap"><div class="f">${g.fase}</div><div class="n">${g.nome}</div></div>
+          <div class="col" style="height:${g.h*2.6}px">${g.crise}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="gcaption">Tempo de empresa</div>
+    <div class="gnote"><h3>Sua empresa está na ${GREINER[gp].fase.replace('FASE','Fase')} - ${GREINER[gp].nome}</h3>
+      <p>${greinerNote(gp)}</p></div>
+  </div></div>`;
+
+  // detailed by scope
+  html+=`<div class="rep-block"><div class="rep-h">Análise Detalhada por Escopo</div>`;
+  BLOCKS.forEach((b,i)=>{
+    const s=scores[i], n=nivel(s), cor=nivelHex(n), pts=n==="critico"?PTS_CRITICO:PTS_REGULAR;
+    html+=`<div class="dscope" style="border-color:${b.cor}44;background:linear-gradient(180deg,${b.cor}0d,transparent)">
+      <div class="dh">
+        <div class="dico" style="background:${b.cor}">${ICON[b.icone]}</div>
+        <div class="dname" style="color:${b.cor}">${b.nome}</div>
+        <div class="dscore" style="color:${cor}">${s}</div>
+        <div class="badge" style="background:${cor}22;color:${cor}">${nivelLabel(n)}</div>
+      </div>
+      <div class="dbar"><i style="width:${s}%;background:${cor}"></i></div>
+      <div class="ddesc">${DESC[b.id][n]}</div>
+      <div class="dpts-h">${warnIcon(cor)} 6 Pontos de Atenção</div>
+      <div class="dpts">${pts.map((t,k)=>`<div class="dpt"><div class="num" style="background:${b.cor}">${k+1}</div><span>${t}</span></div>`).join('')}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // recomendações
+  html+=`<div class="rep-block"><div class="recs">
+    <h2>${bulbIcon()} 10 Recomendações Estratégicas</h2>
+    <div class="sub">Considerando todos os escopos analisados</div>
+    <div class="recs-grid">${REC.map((r,i)=>`<div class="rec"><div class="num">${i+1}</div><span>${r}</span></div>`).join('')}</div>
+  </div></div>`;
+
+  // resumo consultivo
+  html+=`<div class="rep-block"><div class="resumo">
+    <h2>${barIcon()} Resumo Consultivo</h2>
+    <p>Com base na análise completa dos cinco pilares do setor financeiro da <b>${STATE.dados.empresa||'sua empresa'}</b>, identificamos um score geral de <span class="hl">${gs} pontos</span>, classificando a empresa como <b>${nivelLabel(gn)}</b> em termos de maturidade financeira.</p>
+    <p>Os resultados mostram que a empresa possui potencial significativo de crescimento, mas necessita de estruturação em processos-chave para alcançar níveis superiores de performance e sustentabilidade financeira.</p>
+    <p>Recomendamos foco prioritário nos pontos críticos identificados, implementação gradual das melhorias sugeridas e acompanhamento mensal dos indicadores-chave para monitorar a evolução da maturidade financeira da organização.</p>
+    <div class="next"><h4>Próximos Passos Recomendados:</h4><ol>
+      <li>Priorizar implementação das recomendações de alta importância</li>
+      <li>Estabelecer cronograma de melhorias com metas trimestrais</li>
+      <li>Implementar sistema de monitoramento contínuo</li>
+      <li>Realizar nova avaliação em 6 meses para medir progresso</li>
+    </ol></div>
+  </div></div>`;
+
+  // plano de ação
+  html+=`<div class="rep-block"><div class="plan">
+    <div class="ph">${targetIcon("#fff")}<h2>Plano de Ação - Próximos 6 Meses</h2></div>
+    <div class="psub">Cronograma de implementação das principais ações</div>
+    <div class="ptable">
+      <div class="prow head"><div>Ação</div><div>Mês 1</div><div>Mês 2</div><div>Mês 3</div><div>Mês 4</div><div>Mês 5</div><div>Mês 6</div></div>
+      ${PLAN_ROWS.map(row=>planRow(row,scores)).join('')}
+    </div>
+    <div class="plegend"><div class="lt">Legenda de Prioridades:</div><div class="bar"></div><div class="ends"><span>Alta</span><span>Média</span><span>Baixa</span></div></div>
+    <div class="obs"><h3>Observações Importantes:</h3><ul>
+      <li><b>Foque nas ações de alta prioridade primeiro</b> - elas têm maior impacto no score geral</li>
+      <li><b>Monitore o progresso mensalmente</b> - ajuste o cronograma conforme necessário</li>
+      <li><b>Algumas ações podem ser executadas em paralelo</b> - otimize recursos quando possível</li>
+      <li><b>Reavalie após 6 meses</b> - realize um novo diagnóstico para medir o progresso</li>
+    </ul></div>
+  </div></div>
+  </div>`;  // fecha #pdf-area — tudo daqui pra baixo NÃO entra no PDF
+
+  // CTA final
+  html+=`<div class="finalcta">
+    <h2>Quer transformar esse diagnóstico em resultado?</h2>
+    <p>A Núcleo Financeiro ajuda empresas como a sua a sair do improviso e ganhar clareza financeira. Vamos conversar sobre o seu plano.</p>
+    <button class="cta-blue" onclick="window.open(CONTACT_URL||'#','_blank')">Falar com a Núcleo Financeiro</button>
+    <div style="margin-top:16px"><button class="btn-green" id="pdf_btn" onclick="baixarPDF()">${pdfIcon()} Baixar PDF do diagnóstico</button></div>
+    <div class="saved" id="saved_msg">✓ Diagnóstico registrado</div>
+  </div></div>`;
+  return html;
+}
+function greinerNote(gp){
+  const notes=[
+    "Sua empresa está no início da jornada, movida por criatividade e energia empreendedora. É hora de começar a estruturar liderança e processos.",
+    "Sua empresa está desenvolvendo direção e estrutura. Há liderança mais clara, mas pode haver resistência à autonomia. É importante equilibrar controle e delegação.",
+    "Sua empresa amadurece a delegação de responsabilidades. O desafio agora é manter controle sem sufocar a autonomia das áreas.",
+    "Sua empresa investe em coordenação entre áreas. O cuidado é evitar excesso de processos que engessem a operação.",
+    "Sua empresa opera com forte colaboração entre equipes. O foco passa a ser sustentar o crescimento sem perder identidade.",
+    "Sua empresa está madura, construindo alianças e novos ciclos. O desafio é reinventar-se e preservar a identidade."
+  ];
+  return notes[gp];
+}
+function planRow(row,scores){
+  let prio=row.prio;
+  if(!prio){ const idx=BLOCKS.findIndex(b=>b.id===row.blk); const sc=idx>=0?scores[idx]:100; prio = sc<45?"alta":sc<60?"media":"baixa"; }
+  const pts = row.blk!=null ? (scores[BLOCKS.findIndex(b=>b.id===row.blk)]) : null;
+  const prioLbl = prio==="alta"?"alta":prio==="media"?"média":"baixa";
+  const cells=Array(6).fill(null);
+  for(let i=0;i<row.cells.length;i+=2){ const m=row.cells[i]; cells[m-1]=row.cells[i+1]; }
+  return `<div class="prow">
+    <div class="pact"><div class="t">${row.nome}${pts!=null?` (${pts}pts)`:''}</div><div class="p">Prioridade: ${prioLbl}</div></div>
+    ${cells.map(c=> c?`<div class="pcell ${prio}">${c}</div>`:`<div class="pcell empty"></div>`).join('')}
+  </div>`;
+}
+function targetIcon(c){ return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="${c}" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="${c}"/></svg>`; }
+function bulbIcon(){ return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#CBCAD8" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>`; }
+function barIcon(){ return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg>`; }
+
+/* ---- radar SVG ---- */
+function drawRadar(){
+  const holder=document.getElementById("radar"); if(!holder)return;
+  const scores=BLOCKS.map((_,i)=>blockScore(i));
+  const labels=BLOCKS.map(b=>b.nome);
+  const gs=globalScore(), gcor=nivelHex(nivel(gs));
+  const W=520,H=460,cx=W/2,cy=H/2+6,R=150,N=5;
+  const ang=i=>(-90+i*72)*Math.PI/180;
+  const pt=(i,r)=>[cx+Math.cos(ang(i))*r, cy+Math.sin(ang(i))*r];
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+  // grid rings
+  [20,40,60,80,100].forEach(v=>{
+    const pts=[]; for(let i=0;i<N;i++){const[x,y]=pt(i,R*v/100);pts.push(x+","+y);}
+    svg+=`<polygon points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="1"/>`;
+    const[lx,ly]=pt(0,R*v/100); svg+=`<text x="${cx+6}" y="${ly+3}" fill="#75757F" font-size="10">${v}</text>`;
+  });
+  // axes
+  for(let i=0;i<N;i++){const[x,y]=pt(i,R);svg+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.10)"/>`;}
+  // data polygon
+  const dpts=[]; scores.forEach((s,i)=>{const[x,y]=pt(i,R*s/100);dpts.push(x+","+y);});
+  svg+=`<polygon points="${dpts.join(' ')}" fill="${gcor}33" stroke="${gcor}" stroke-width="2.5"/>`;
+  scores.forEach((s,i)=>{const[x,y]=pt(i,R*s/100);svg+=`<circle cx="${x}" cy="${y}" r="6" fill="${nivelHex(nivel(s))}" stroke="#101014" stroke-width="2"/>`;});
+  // labels
+  labels.forEach((lb,i)=>{
+    let[x,y]=pt(i,R+34); let anchor="middle";
+    if(x<cx-30)anchor="end"; else if(x>cx+30)anchor="start";
+    const words=lb.split(' '); 
+    if(words.length>2){
+      const l1=words.slice(0,Math.ceil(words.length/2)).join(' '), l2=words.slice(Math.ceil(words.length/2)).join(' ');
+      svg+=`<text x="${x}" y="${y-6}" fill="#DADAE0" font-size="13" font-weight="600" text-anchor="${anchor}">${l1}</text><text x="${x}" y="${y+11}" fill="#DADAE0" font-size="13" font-weight="600" text-anchor="${anchor}">${l2}</text>`;
+    } else svg+=`<text x="${x}" y="${y}" fill="#DADAE0" font-size="13" font-weight="600" text-anchor="${anchor}">${lb}</text>`;
+  });
+  svg+=`</svg>`; holder.innerHTML=svg;
+}
+
+/* ---- salvar lead ---- */
+function montarResultadoLegivel(origem){
+  const gs=globalScore(), gn=nivel(gs);
+  const porEscopo={};
+  BLOCKS.forEach((b,i)=>{
+    const s=blockScore(i), n=nivel(s), pts=n==="critico"?PTS_CRITICO:PTS_REGULAR;
+    porEscopo[b.id] = { nome:b.nome, score:s, nivel:nivelLabel(n), pontos_atencao:pts };
+  });
+  const perguntas=[];
+  BLOCKS.forEach(b=>{
+    b.perguntas.forEach((p,qi)=>{
+      const idx=(STATE.respostas[b.id]||[])[qi];
+      perguntas.push({ bloco:b.nome, pergunta:p.q, resposta: idx!=null?p.opcoes[idx]:null });
+    });
+  });
+  const gp=greinerPhase();
+  const resumo = `Score geral ${gs}/100 (${nivelLabel(gn)}). `+
+    `Estágio (Greiner): ${GREINER[gp].fase} — ${GREINER[gp].nome}. `+
+    `Pilar mais fraco: ${BLOCKS.slice().map((b,i)=>({b,s:blockScore(i)})).sort((a,c)=>a.s-c.s)[0].b.nome}.`;
+  return {
+    _origem: origem,
+    resumo_consultivo: resumo,
+    greiner_fase: GREINER[gp].fase+" — "+GREINER[gp].nome,
+    por_escopo: porEscopo,
+    perguntas_respostas: perguntas
+  };
+}
+async function doSaveLead(){
+  if(STATE.leadSaved) return; STATE.leadSaved=true;
+  const scores={}; BLOCKS.forEach((b,i)=>scores[b.id]=blockScore(i));
+  const payload={
+    nome:STATE.dados.nome, email:STATE.dados.email, telefone:STATE.dados.telefone,
+    empresa:STATE.dados.empresa, cargo:STATE.dados.cargo,
+    objetivo:PERFIL.objetivo.opcoes[STATE.perfil.objetivo]||null,
+    tempo_empresa:PERFIL.tempo.opcoes[STATE.perfil.tempo]||null,
+    setor:STATE.perfil.setor||null,
+    faturamento:PERFIL.faturamento.opcoes[STATE.perfil.faturamento]||null,
+    score_geral:globalScore(), nivel_geral:nivelLabel(nivel(globalScore())),
+    scores_por_escopo:scores, respostas:montarResultadoLegivel("nucleo-financeiro")
+  };
+  const r=await salvarLead(payload);
+  if(r.ok){ const m=document.getElementById("saved_msg"); if(m)m.style.display="block"; }
+  // avisa a landing (quando embutido em iframe) que o diagnóstico foi concluído
+  try{
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({
+        nf:"diagnostico_concluido",
+        salvo: !!r.ok,
+        score: globalScore()
+      }, "*");
+    }
+  }catch(e){}
+}
+
+/* ---- helpers gerais ---- */
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function pdfIcon(){ return `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:2px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg>`; }
+
+/* ---- baixar PDF do diagnóstico ---- */
+async function baixarPDF(){
+  const btn=document.getElementById("pdf_btn"); if(!btn||btn.disabled) return;
+  const area=document.getElementById("pdf-area"); if(!area) return;
+  const original=btn.innerHTML;
+  btn.disabled=true; btn.innerHTML="Gerando PDF…";
+  try{
+    if(typeof html2canvas==="undefined" || typeof window.jspdf==="undefined"){
+      throw new Error("Bibliotecas de PDF não carregaram (verifique sua conexão) — tente novamente.");
+    }
+    const canvas = await html2canvas(area, {
+      scale: 2, useCORS: true, backgroundColor: "#0A0A0F",
+      windowWidth: area.scrollWidth
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:"p", unit:"pt", format:"a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgW = pageW;
+    const imgH = canvas.height * (imgW / canvas.width);
+    const imgData = canvas.toDataURL("image/jpeg", 0.92);
+
+    let heightLeft = imgH, positionY = 0;
+    pdf.addImage(imgData, "JPEG", 0, positionY, imgW, imgH);
+    heightLeft -= pageH;
+    while(heightLeft > 0){
+      positionY = heightLeft - imgH;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, positionY, imgW, imgH);
+      heightLeft -= pageH;
+    }
+    const nomeArq = "diagnostico-" + (STATE.dados.empresa||STATE.dados.nome||"nucleo-financeiro")
+      .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"") + ".pdf";
+    pdf.save(nomeArq);
+  }catch(e){
+    alert("Não consegui gerar o PDF agora. Você pode tentar de novo, ou usar Ctrl+P / Cmd+P e escolher \"Salvar como PDF\". Detalhe: "+e.message);
+  }finally{
+    btn.disabled=false; btn.innerHTML=original;
+  }
+}
+
+render();
+</script>
