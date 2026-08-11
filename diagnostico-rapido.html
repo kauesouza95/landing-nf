@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico Rápido · Núcleo Financeiro Consultoria</title>
+
+<!-- Microsoft Clarity -->
+<script type="text/javascript">
+(function(c,l,a,r,i,t,y){
+  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "xyqfftf5vb");
+</script>
+<!-- End Microsoft Clarity -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!--
+  ============================================================================
+  CONFIGURAÇÃO — preencha antes de publicar
+  1) SUPABASE_URL e SUPABASE_ANON_KEY: os mesmos do resto do projeto
+  2) WHATSAPP_URL: link do wa.me
+  3) Rode o SQL de nf-diagnostico-rapido.sql para criar a tabela
+  ============================================================================
+-->
+
+<style>
+:root{
+  --bg:#0A0A0F; --bg2:#0E0E14; --card:#17171D; --line:rgba(255,255,255,.09);
+  --line2:rgba(255,255,255,.18); --ink:#F7F7F9; --mut:#A6A6B3; --mut2:#727280;
+  --lav:#CBCAD8; --lav-br:#DEDDE8; --coral:#F0625D; --amber:#E8973A; --ok:#46C97E;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.6;min-height:100vh;}
+h1,h2,h3,.sg{font-family:'Space Grotesk',sans-serif;letter-spacing:-.02em;}
+.wrap{max-width:620px;margin:0 auto;padding:32px 22px 60px;}
+
+/* topo */
+.topo{display:flex;align-items:center;gap:11px;margin-bottom:26px;}
+.topo .marca{font-family:'Space Grotesk';font-weight:600;font-size:13px;
+  letter-spacing:.11em;text-transform:uppercase;}
+.topo .marca small{display:block;font-size:8px;letter-spacing:.3em;color:var(--lav);
+  font-weight:400;margin-top:1px;}
+.nfbox{width:32px;height:32px;background:var(--lav);border-radius:4px;display:flex;
+  align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;
+  font-size:13px;color:#0A0A0F;letter-spacing:-.03em;}
+
+/* progresso */
+.prog{height:5px;background:#1E1E25;border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.prog i{display:block;height:100%;background:var(--lav);border-radius:3px;
+  width:0%;transition:width .35s ease;}
+.prog-txt{font-size:12.5px;color:var(--mut2);margin-bottom:30px;}
+
+/* pergunta */
+.q-num{font-family:'Space Grotesk';font-weight:500;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--lav);margin-bottom:12px;}
+.q-tit{font-size:27px;font-weight:700;line-height:1.22;margin-bottom:8px;}
+.q-sub{font-size:14.5px;color:var(--mut);margin-bottom:26px;}
+.ops{display:flex;flex-direction:column;gap:11px;}
+.op{background:var(--card);border:1px solid var(--line);border-radius:13px;
+  padding:17px 20px;font-size:15.5px;color:#E2E2E8;cursor:pointer;
+  transition:border-color .15s,background .15s,transform .1s;text-align:left;width:100%;
+  font-family:'Inter';}
+.op:hover{border-color:var(--lav);background:rgba(203,202,216,.07);}
+.op:active{transform:scale(.99);}
+
+/* navegação */
+.nav-lin{display:flex;justify-content:space-between;align-items:center;margin-top:26px;}
+.voltar{background:none;border:none;color:var(--mut2);font-size:14px;cursor:pointer;
+  font-family:'Inter';padding:8px 0;}
+.voltar:hover{color:var(--lav);}
+
+/* formulário */
+.campo{margin-bottom:16px;}
+.campo label{display:block;font-size:13.5px;color:var(--mut);margin-bottom:7px;}
+.campo input{width:100%;background:#0A0A0F;border:1px solid var(--line2);
+  border-radius:11px;padding:15px 16px;color:var(--ink);font-family:'Inter';font-size:15.5px;}
+.campo input::placeholder{color:var(--mut2);}
+.campo input:focus{outline:none;border-color:var(--lav);}
+.erro{color:var(--coral);font-size:13px;margin-top:6px;display:none;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  background:var(--lav);color:#0A0A0F;font-family:'Space Grotesk';font-weight:700;
+  font-size:16.5px;padding:17px 30px;border-radius:12px;border:none;cursor:pointer;
+  width:100%;transition:background .15s;}
+.btn:hover{background:var(--lav-br);}
+.btn:disabled{opacity:.6;cursor:not-allowed;}
+.btn.ghost{background:transparent;color:var(--lav);border:1.5px solid rgba(203,202,216,.4);}
+.fine{font-size:12.5px;color:var(--mut2);margin-top:14px;text-align:center;}
+
+/* resultado */
+.score-box{text-align:center;padding:8px 0 26px;}
+.score-n{font-family:'Space Grotesk';font-weight:700;font-size:76px;line-height:1;}
+.score-d{font-size:16px;color:var(--mut);}
+.score-lvl{display:inline-block;font-family:'Space Grotesk';font-weight:600;font-size:13px;
+  padding:6px 16px;border-radius:100px;margin-top:12px;}
+.barra{margin-bottom:15px;}
+.barra .bl{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px;}
+.barra .bt{height:8px;background:#26262E;border-radius:4px;overflow:hidden;}
+.barra .bf{height:100%;border-radius:4px;transition:width .6s ease;}
+.bloco{background:var(--card);border:1px solid var(--line);border-radius:15px;
+  padding:22px 24px;margin-top:24px;}
+.bloco h3{font-size:17px;font-weight:600;margin-bottom:14px;}
+.acao{display:flex;gap:13px;align-items:flex-start;padding:11px 0;}
+.acao .an{font-family:'Space Grotesk';font-weight:700;color:var(--lav);font-size:16px;
+  flex-shrink:0;}
+.acao p{font-size:14.5px;color:#D2D2DA;}
+.oculto{display:none;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topo">
+    <div class="nfbox">NF</div>
+    <div class="marca">Núcleo Financeiro<small>CONSULTORIA</small></div>
+  </div>
+
+  <div id="progWrap">
+    <div class="prog"><i id="progBar"></i></div>
+    <div class="prog-txt" id="progTxt">Pergunta 1 de 7</div>
+  </div>
+
+  <div id="palco"></div>
+</div>
+
+<script>
+/* ===== CONFIGURAÇÃO ===== */
+const SUPABASE_URL      = "https://weivozmdlzhiwvuurfkr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlaXZvem1kbHpoaXd2dXVyZmtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0Mjk5MTcsImV4cCI6MjA5OTAwNTkxN30.Vd8KHpx0l8wCWgEl4-cOdPzofKwjpFOPNl2Dkr07CEg";
+const WHATSAPP_URL      = "https://wa.me/5541995440631?text=Ol%C3%A1%21%20Fiz%20o%20diagn%C3%B3stico%20r%C3%A1pido%20e%20quero%20entender%20melhor%20o%20resultado.";
+
+/* ===== PERGUNTAS ===== */
+const PERGUNTAS = [
+  { area:"Clareza Financeira",
+    tit:"Você sabe quanto sua empresa lucrou no mês passado?",
+    sub:"Lucro de verdade — não o saldo que ficou na conta.",
+    ops:[ {t:"Sei o valor com precisão", v:100},
+          {t:"Tenho uma noção aproximada", v:55},
+          {t:"Só sei quanto entrou e quanto saiu", v:25},
+          {t:"Não sei dizer", v:0} ] },
+
+  { area:"Margem",
+    tit:"Você sabe a margem de cada produto ou serviço que vende?",
+    sub:"Quanto sobra em cada venda, depois de todos os custos.",
+    ops:[ {t:"Sei de todos, com cálculo feito", v:100},
+          {t:"Sei dos principais", v:60},
+          {t:"Tenho uma ideia, mas nunca calculei", v:25},
+          {t:"Não sei", v:0} ] },
+
+  { area:"Previsibilidade",
+    tit:"Consegue prever quanto vai ter em caixa daqui a 30 dias?",
+    sub:"Considerando o que tem a receber e a pagar.",
+    ops:[ {t:"Sim, tenho projeção de caixa", v:100},
+          {t:"Consigo estimar de cabeça", v:50},
+          {t:"Só descubro quando chega a data", v:15},
+          {t:"Vivo apagando incêndio", v:0} ] },
+
+  { area:"Organização",
+    tit:"As contas da empresa e as suas pessoais são separadas?",
+    sub:"Conta bancária separada e pró-labore definido.",
+    ops:[ {t:"Totalmente separadas, com pró-labore fixo", v:100},
+          {t:"Contas separadas, mas sem pró-labore fixo", v:60},
+          {t:"Misturo às vezes", v:25},
+          {t:"É tudo junto", v:0} ] },
+
+  { area:"Precificação",
+    tit:"Como você define o preço do que vende?",
+    sub:"",
+    ops:[ {t:"Custo real + margem que eu quero", v:100},
+          {t:"Custo aproximado + um percentual", v:60},
+          {t:"Olhando o que o concorrente cobra", v:25},
+          {t:"É mais ou menos no feeling", v:0} ] },
+
+  { area:"Rotina de gestão",
+    tit:"Com que frequência você olha um relatório financeiro?",
+    sub:"DRE, fluxo de caixa ou algo equivalente.",
+    ops:[ {t:"Todo mês, com fechamento organizado", v:100},
+          {t:"De vez em quando", v:50},
+          {t:"Só quando tem problema", v:20},
+          {t:"Não tenho relatório nenhum", v:0} ] },
+
+  { area:"Porte",
+    qualifica:true,
+    tit:"Qual a faixa de faturamento mensal da empresa?",
+    sub:"Ajuda a calibrar as recomendações do seu relatório.",
+    ops:[ {t:"Até R$ 20 mil", v:null, faixa:"ate-20k"},
+          {t:"De R$ 20 mil a R$ 50 mil", v:null, faixa:"20k-50k"},
+          {t:"De R$ 50 mil a R$ 200 mil", v:null, faixa:"50k-200k"},
+          {t:"Acima de R$ 200 mil", v:null, faixa:"acima-200k"} ] }
+];
+
+/* ===== RECOMENDAÇÕES POR ÁREA ===== */
+const ACOES = {
+  "Clareza Financeira":"Monte um fechamento mensal simples: quanto entrou, quanto saiu e quanto sobrou de verdade. Sem isso, toda decisão é chute.",
+  "Margem":"Pegue seus 5 produtos mais vendidos e calcule o custo completo de cada um (insumo, imposto, comissão, taxa de cartão). O resultado costuma surpreender.",
+  "Previsibilidade":"Projete entradas e saídas das próximas 8 semanas. Só de enxergar, você antecipa os apertos e negocia antes — não no desespero.",
+  "Organização":"Separe as contas hoje: uma conta só da empresa e um pró-labore fixo. É o passo que revela se o negócio dá lucro de verdade.",
+  "Precificação":"Recalcule o preço a partir do seu custo real e da margem que você quer. Conhecer seu piso te dá segurança para negociar.",
+  "Rotina de gestão":"Estabeleça uma rotina mensal de análise. Financeiro não se resolve com esforço pontual, se resolve com constância."
+};
+
+/* ===== ESTADO ===== */
+let atual = 0;
+const respostas = [];
+let faixaFat = "";
+let contato = {nome:"", whatsapp:""};
+
+const palco = document.getElementById('palco');
+const progWrap = document.getElementById('progWrap');
+
+function avisaPai(dados){
+  try{
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage(dados, "*");
+    }
+  }catch(e){}
+}
+function marca(nome){
+  try{ if(window.clarity) clarity('event', nome); }catch(e){}
+  avisaPai({nf:"diagnostico_etapa", etapa:nome});
+}
+
+function atualizaProgresso(){
+  const pct = Math.round((atual / PERGUNTAS.length) * 100);
+  document.getElementById('progBar').style.width = pct + "%";
+  document.getElementById('progTxt').textContent =
+    "Pergunta " + Math.min(atual+1, PERGUNTAS.length) + " de " + PERGUNTAS.length;
+}
+
+/* ===== TELAS ===== */
+function mostrarPergunta(){
+  const p = PERGUNTAS[atual];
+  progWrap.classList.remove('oculto');
+  atualizaProgresso();
+  marca("Rapido_P" + (atual+1));
+
+  let html = '<div class="q-num">' + p.area + '</div>' +
+             '<h2 class="q-tit">' + p.tit + '</h2>';
+  if(p.sub) html += '<p class="q-sub">' + p.sub + '</p>';
+  html += '<div class="ops">';
+  p.ops.forEach(function(o,i){
+    html += '<button class="op" data-i="'+i+'">' + o.t + '</button>';
+  });
+  html += '</div>';
+  if(atual > 0){
+    html += '<div class="nav-lin"><button class="voltar" id="btVoltar">← Voltar</button></div>';
+  }
+  palco.innerHTML = html;
+
+  palco.querySelectorAll('.op').forEach(function(b){
+    b.addEventListener('click', function(){
+      const i = parseInt(b.dataset.i,10);
+      const op = p.ops[i];
+      if(p.qualifica){ faixaFat = op.faixa; }
+      respostas[atual] = {area:p.area, resposta:op.t, valor:op.v};
+      atual++;
+      if(atual >= PERGUNTAS.length) mostrarContato();
+      else mostrarPergunta();
+    });
+  });
+  const bv = document.getElementById('btVoltar');
+  if(bv) bv.addEventListener('click', function(){ atual--; mostrarPergunta(); });
+}
+
+function mostrarContato(){
+  progWrap.classList.add('oculto');
+  marca("Rapido_Contato");
+  palco.innerHTML =
+    '<div class="q-num">Último passo</div>' +
+    '<h2 class="q-tit">Pronto! Seu resultado está calculado.</h2>' +
+    '<p class="q-sub">Informe seu nome e WhatsApp para ver o diagnóstico completo e receber o plano de prioridades.</p>' +
+    '<div class="campo"><label>Seu nome</label>' +
+      '<input type="text" id="fNome" placeholder="Como podemos te chamar?" autocomplete="name"></div>' +
+    '<div class="campo"><label>WhatsApp</label>' +
+      '<input type="tel" id="fZap" placeholder="(41) 99999-9999" autocomplete="tel"></div>' +
+    '<div class="erro" id="fErro"></div>' +
+    '<button class="btn" id="btVer">Ver meu resultado &nbsp;→</button>' +
+    '<p class="fine">Não enviamos spam. Seus dados não são compartilhados com terceiros.</p>' +
+    '<div class="nav-lin"><button class="voltar" id="btVoltar2">← Voltar</button></div>';
+
+  document.getElementById('btVoltar2').addEventListener('click', function(){
+    atual = PERGUNTAS.length - 1; mostrarPergunta();
+  });
+
+  const zap = document.getElementById('fZap');
+  zap.addEventListener('input', function(){
+    let v = zap.value.replace(/\D/g,'').slice(0,11);
+    if(v.length > 6)      v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+    else if(v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
+    else if(v.length > 0) v = '('+v;
+    zap.value = v;
+  });
+
+  document.getElementById('btVer').addEventListener('click', enviar);
+}
+
+async function enviar(){
+  const nome = document.getElementById('fNome').value.trim();
+  const zapF = document.getElementById('fZap').value.trim();
+  const zapN = zapF.replace(/\D/g,'');
+  const erro = document.getElementById('fErro');
+  const bt   = document.getElementById('btVer');
+
+  if(nome.length < 2){
+    erro.textContent = "Por favor, informe seu nome.";
+    erro.style.display = "block"; return;
+  }
+  if(zapN.length < 10){
+    erro.textContent = "Informe um WhatsApp válido, com DDD.";
+    erro.style.display = "block"; return;
+  }
+  erro.style.display = "none";
+  contato = {nome:nome, whatsapp:zapF};
+
+  bt.disabled = true; bt.textContent = "Calculando...";
+
+  const r = calcular();
+  await salvar(r);
+
+  marca("Rapido_Resultado");
+  avisaPai({nf:"diagnostico_concluido", salvo:true, score:r.score, tipo:"rapido"});
+  mostrarResultado(r);
+}
+
+function calcular(){
+  const pontuadas = respostas.filter(function(x){ return x.valor !== null && x.valor !== undefined; });
+  const soma = pontuadas.reduce(function(a,b){ return a + b.valor; }, 0);
+  const score = Math.round(soma / pontuadas.length);
+  const ordenadas = pontuadas.slice().sort(function(a,b){ return a.valor - b.valor; });
+  return {score:score, areas:pontuadas, fracas:ordenadas.slice(0,3)};
+}
+
+function nivel(s){
+  if(s >= 75) return {txt:"BOA",      cor:"#46C97E", bg:"rgba(70,201,126,.15)"};
+  if(s >= 50) return {txt:"REGULAR",  cor:"#E8973A", bg:"rgba(232,151,58,.15)"};
+  if(s >= 25) return {txt:"FRÁGIL",   cor:"#F0625D", bg:"rgba(240,98,93,.15)"};
+  return             {txt:"CRÍTICA",  cor:"#F0625D", bg:"rgba(240,98,93,.2)"};
+}
+function corBarra(v){
+  if(v >= 75) return "#46C97E";
+  if(v >= 50) return "#E8973A";
+  return "#F0625D";
+}
+
+function mostrarResultado(r){
+  const n = nivel(r.score);
+  let html =
+    '<div class="score-box">' +
+      '<div class="q-num">Sua saúde financeira</div>' +
+      '<div><span class="score-n">' + r.score + '</span><span class="score-d"> / 100</span></div>' +
+      '<div class="score-lvl" style="color:'+n.cor+';background:'+n.bg+'">' + n.txt + '</div>' +
+    '</div>';
+
+  html += '<div class="bloco"><h3>Como você está em cada área</h3>';
+  r.areas.forEach(function(a){
+    const c = corBarra(a.valor);
+    html += '<div class="barra">' +
+      '<div class="bl"><span style="color:#D2D2DA">'+a.area+'</span>' +
+      '<span class="sg" style="color:'+c+';font-weight:600">'+a.valor+'</span></div>' +
+      '<div class="bt"><div class="bf" style="width:'+a.valor+'%;background:'+c+'"></div></div></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="bloco"><h3>Por onde começar</h3>';
+  r.fracas.forEach(function(a,i){
+    html += '<div class="acao"><span class="an">0'+(i+1)+'</span><p><b style="color:#F7F7F9">'+
+            a.area+'.</b> ' + (ACOES[a.area] || "") + '</p></div>';
+  });
+  html += '</div>';
+
+  html +=
+    '<div class="bloco" style="border-color:rgba(203,202,216,.3);background:rgba(203,202,216,.06)">' +
+      '<h3>Quer entender o que está por trás desses números?</h3>' +
+      '<p style="font-size:14.5px;color:#C8C8D2;margin-bottom:18px">' +
+      'Este é um retrato rápido. Em uma conversa de 20 minutos dá para olhar seu caso com profundidade ' +
+      'e montar um plano de verdade — sem custo e sem compromisso.</p>' +
+      '<a class="btn" href="' + WHATSAPP_URL + '" target="_blank" rel="noopener" id="btZap" ' +
+      'style="text-decoration:none">Falar com a Núcleo Financeiro</a>' +
+    '</div>';
+
+  palco.innerHTML = html;
+
+  const bz = document.getElementById('btZap');
+  if(bz) bz.addEventListener('click', function(){
+    marca("Rapido_ClicouWhatsApp");
+    avisaPai({nf:"clicou_whatsapp"});
+  });
+  window.scrollTo(0,0);
+}
+
+async function salvar(r){
+  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return {ok:false, pulado:true};
+  const payload = {
+    nome: contato.nome,
+    whatsapp: contato.whatsapp,
+    score: r.score,
+    faixa_faturamento: faixaFat,
+    respostas: {
+      tipo: "diagnostico-rapido",
+      origem: "nucleo-financeiro",
+      areas: r.areas,
+      pontos_fracos: r.fracas.map(function(a){ return a.area; }),
+      detalhe: respostas
+    }
+  };
+  try{
+    const resp = await fetch(SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/nf_diagnostico_rapido", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "apikey":SUPABASE_ANON_KEY,
+        "Authorization":"Bearer "+SUPABASE_ANON_KEY,
+        "Prefer":"return=minimal"
+      },
+      body: JSON.stringify(payload)
+    });
+    return {ok: resp.ok};
+  }catch(e){ return {ok:false}; }
+}
+
+/* início */
+avisaPai({nf:"diagnostico_iniciado"});
+marca("Rapido_Iniciou");
+mostrarPergunta();
+</script>
+</body>
+</html>
